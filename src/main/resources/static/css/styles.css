@@ -1,0 +1,154 @@
+:root {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #152031;
+    background-color: #f7fafc;
+}
+
+body {
+    margin: 0;
+    padding: 2rem;
+}
+
+.app {
+    max-width: 960px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgba(21, 32, 49, 0.12);
+    padding: 2rem 3rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.subtitle {
+    margin-top: 0.5rem;
+    color: #5b6c84;
+}
+
+.connection-panel,
+.message-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem 1.5rem;
+    align-items: end;
+    margin-bottom: 2rem;
+}
+
+.connection-panel .buttons {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+label {
+    font-weight: 600;
+    color: #364152;
+}
+
+select,
+input,
+button {
+    font-size: 1rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+select:focus,
+input:focus,
+button:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+button {
+    font-weight: 600;
+    background-color: #3b82f6;
+    color: #fff;
+    cursor: pointer;
+    border: none;
+}
+
+button:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.status {
+    grid-column: 1 / -1;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+}
+
+.status.connected {
+    color: #065f46;
+    background: #ecfdf5;
+}
+
+.status.disconnected {
+    color: #b91c1c;
+    background: #fef2f2;
+}
+
+.streams {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.stream {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+    background: #f8fafc;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+}
+
+.stream h3 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    color: #1f2933;
+}
+
+.stream ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    color: #364152;
+}
+
+.stream li span.timestamp {
+    display: inline-block;
+    width: 4.5rem;
+    font-weight: 600;
+    color: #1f2933;
+}
+
+.stream li span.sender {
+    display: inline-block;
+    min-width: 4rem;
+    font-weight: 600;
+}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime Emoji Chat - Infrastructure Preview</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/dist/stomp.min.js"></script>
+</head>
+<body>
+<div class="app">
+    <header>
+        <h1>Realtime Emoji Chat</h1>
+        <p class="subtitle">Iteration 1 · WebSocket &amp; STOMP infrastructure preview</p>
+    </header>
+
+    <section class="connection-panel">
+        <div class="field">
+            <label for="meSelect">ME</label>
+            <select id="meSelect"></select>
+        </div>
+        <div class="field">
+            <label for="deviceIdInput">Device ID</label>
+            <input id="deviceIdInput" placeholder="auto-generated" readonly>
+        </div>
+        <div class="buttons">
+            <button id="connectBtn">Connect &amp; Register</button>
+            <button id="disconnectBtn" disabled>Disconnect</button>
+        </div>
+        <p id="statusLabel" class="status disconnected">Disconnected</p>
+    </section>
+
+    <section class="message-panel">
+        <h2>Broadcast Message Demo</h2>
+        <div class="field">
+            <label for="messageSelect">Message</label>
+            <select id="messageSelect"></select>
+        </div>
+        <div class="field">
+            <label for="sendToSelect">SEND TO</label>
+            <select id="sendToSelect">
+                <option value="EVERYONE">EVERYONE</option>
+            </select>
+        </div>
+        <button id="sendBtn" disabled>Send Message</button>
+    </section>
+
+    <section class="streams">
+        <div class="stream">
+            <h3>Messages</h3>
+            <ul id="messageList"></ul>
+        </div>
+        <div class="stream">
+            <h3>Notifications</h3>
+            <ul id="notificationList"></ul>
+        </div>
+        <div class="stream">
+            <h3>Errors</h3>
+            <ul id="errorList"></ul>
+        </div>
+    </section>
+</div>
+
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>
