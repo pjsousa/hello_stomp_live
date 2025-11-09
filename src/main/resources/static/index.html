@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Chat</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.2.1/bundles/stomp.umd.min.js"></script>
+</head>
+<body>
+<main class="layout">
+    <header class="app-header">
+        <h1>Emoji Real-Time Chat</h1>
+        <div id="connectionStatus" class="status">Connecting...</div>
+    </header>
+
+    <section class="controls">
+        <div class="control-group">
+            <label for="meSelect">ME</label>
+            <select id="meSelect"></select>
+        </div>
+        <div class="control-group">
+            <label for="sendToButton">SEND TO</label>
+            <button id="sendToButton" class="cycle-button">EVERYONE</button>
+        </div>
+        <div class="control-group">
+            <label for="sendMeSelect">SEND ME</label>
+            <select id="sendMeSelect"></select>
+        </div>
+        <div class="control-group">
+            <label for="sendHereSelect">SEND HERE</label>
+            <select id="sendHereSelect"></select>
+        </div>
+        <div class="control-group">
+            <label for="sendUsSelect">SEND US</label>
+            <select id="sendUsSelect"></select>
+        </div>
+        <div class="control-group inline-actions">
+            <button id="messageButton" class="cycle-button">🍎</button>
+            <button id="sendButton" class="primary">SEND</button>
+        </div>
+    </section>
+
+    <section class="messages">
+        <h2>Messages</h2>
+        <div id="messagesPane" class="messages-pane"></div>
+    </section>
+
+    <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <pre id="diagnosticsPane" class="diagnostics-pane" aria-live="polite"></pre>
+    </section>
+</main>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>
