@@ -145,7 +145,13 @@ function registerListeners() {
 }
 
 function connect() {
-    stompClient = new window.Stomp.Client({
+    const StompNS = window.StompJs ?? window.Stomp;
+    if (!StompNS || !StompNS.Client) {
+        logDiagnostic("STOMP_INIT_ERROR", "STOMP library not found on window");
+        showError("STOMP library failed to load.");
+        return;
+    }
+    stompClient = new StompNS.Client({
         brokerURL: `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`,
         reconnectDelay: 5000,
         heartbeatIncoming: 0,
