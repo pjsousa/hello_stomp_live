@@ -14,7 +14,8 @@ const elements = {
     messageButton: document.getElementById("messageButton"),
     sendButton: document.getElementById("sendButton"),
     messagesPane: document.getElementById("messagesPane"),
-    connectionStatus: document.getElementById("connectionStatus")
+    connectionStatus: document.getElementById("connectionStatus"),
+    diagnosticsPane: document.getElementById("diagnosticsPane")
 };
 
 let stompClient = null;
@@ -41,7 +42,27 @@ const subscriptions = {
     deviceControl: null
 };
 
+const diagnosticsEntries = [];
+const MAX_DIAGNOSTICS = 200;
+let lastStatusText = "";
+
+function logDiagnostic(event, detail = "") {
+    const timestamp = new Date().toISOString();
+    const line = detail ? `${timestamp} | ${event} | ${detail}` : `${timestamp} | ${event}`;
+    diagnosticsEntries.push(line);
+    if (diagnosticsEntries.length > MAX_DIAGNOSTICS) {
+        diagnosticsEntries.splice(0, diagnosticsEntries.length - MAX_DIAGNOSTICS);
+    }
+    if (elements.diagnosticsPane) {
+        elements.diagnosticsPane.textContent = diagnosticsEntries.join("\n");
+        elements.diagnosticsPane.scrollTop = elements.diagnosticsPane.scrollHeight;
+    }
+    // eslint-disable-next-line no-console
+    console.debug("[diagnostic]", line);
+}
+
 function init() {
+    logDiagnostic("INIT", `Origin=${window.location.origin}`);
     populateSelect(elements.meSelect, animalOptions);
     populateSelect(elements.sendMeSelect, foodOptions);
     populateSelect(elements.sendHereSelect, foodOptions);
@@ -54,7 +75,7 @@ function init() {
     elements.messageButton.textContent = foodOptions[0];
 
     registerListeners();
-    connect();
+    probeEndpoint().finally(connect);
     updateSendToTargets();
     setConnectionStatus("Connecting…", "pending");
 }
@@ -75,6 +96,7 @@ function registerListeners() {
         subscribeUserTopics();
         registerSession();
         updateSendToTargets();
+        logDiagnostic("ME_CHANGED", currentMe);
     });
 
     elements.sendToButton.addEventListener("click", () => {
@@ -89,21 +111,27 @@ function registerListeners() {
         if (suppressSendMe) {
             return;
         }
-        publishValue("/app/settings/send-me", elements.sendMeSelect.value);
+        const value = elements.sendMeSelect.value;
+        logDiagnostic("SEND_ME_CHANGE", value);
+        publishValue("/app/settings/send-me", value);
     });
 
     elements.sendHereSelect.addEventListener("change", () => {
         if (suppressSendHere) {
             return;
         }
-        publishValue("/app/settings/send-here", elements.sendHereSelect.value);
+        const value = elements.sendHereSelect.value;
+        logDiagnostic("SEND_HERE_CHANGE", value);
+        publishValue("/app/settings/send-here", value);
     });
 
     elements.sendUsSelect.addEventListener("change", () => {
         if (suppressSendUs) {
             return;
         }
-        publishValue("/app/settings/send-us", elements.sendUsSelect.value);
+        const value = elements.sendUsSelect.value;
+        logDiagnostic("SEND_US_CHANGE", value);
+        publishValue("/app/settings/send-us", value);
     });
 
     elements.messageButton.addEventListener("click", () => {
@@ -116,19 +144,33 @@ function registerListeners() {
     });
 }
 
+async function probeEndpoint() {
+    logDiagnostic("PROBE", "Checking SockJS info endpoint /ws/info");
+    try {
+        const response = await fetch("/ws/info", { method: "GET", headers: { "Cache-Control": "no-cache" } });
+        logDiagnostic("PROBE_RESULT", `status=${response.status}`);
+    } catch (error) {
+        logDiagnostic("PROBE_ERROR", error instanceof Error ? error.message : String(error));
+    }
+}
+
 function connect() {
     stompClient = new window.Stomp.Client({
         webSocketFactory: () => new SockJS("/ws"),
         reconnectDelay: 5000,
         heartbeatIncoming: 10000,
         heartbeatOutgoing: 10000,
-        debug: () => {
+        debug: message => {
+            if (message && !message.includes("PING")) {
+                logDiagnostic("STOMP_DEBUG", message);
+            }
         }
     });
 
     stompClient.onConnect = frame => {
         sessionId = frame.headers["session"];
         setConnectionStatus("Connected", "ok");
+        logDiagnostic("STOMP_CONNECTED", JSON.stringify(frame.headers));
         subscribeStaticTopics();
         subscribeDeviceTopics();
         subscribeUserTopics();
@@ -136,13 +178,32 @@ function connect() {
     };
 
     stompClient.onStompError = frame => {
-        showError(`Broker error: ${frame.headers["message"] ?? "unknown"}`);
+        const message = frame.headers["message"] ?? "unknown";
+        logDiagnostic("STOMP_ERROR", message);
+        showError(`Broker error: ${message}`);
     };
 
     stompClient.onWebSocketClose = () => {
         setConnectionStatus("Disconnected – retrying…", "warn");
         sessionId = null;
         resetSubscriptions();
+        logDiagnostic("WEBSOCKET_CLOSED", "Underlying transport closed");
+    };
+
+    stompClient.onWebSocketError = event => {
+        logDiagnostic("WEBSOCKET_ERROR", event && event.message ? event.message : "transport error");
+    };
+
+    stompClient.onUnhandledMessage = message => {
+        logDiagnostic("UNHANDLED_MESSAGE", JSON.stringify(message.body));
+    };
+
+    stompClient.onUnhandledFrame = frame => {
+        logDiagnostic("UNHANDLED_FRAME", JSON.stringify(frame));
+    };
+
+    stompClient.onUnhandledReceipt = receiptId => {
+        logDiagnostic("UNHANDLED_RECEIPT", receiptId);
     };
 
     stompClient.activate();
@@ -167,6 +228,7 @@ function subscribeStaticTopics() {
         const payload = JSON.parse(messageFrame.body);
         appendMessage(payload);
     });
+    logDiagnostic("SUBSCRIBED", "/topic/messages");
 
     unsubscribe("online");
     subscriptions.online = stompClient.subscribe("/topic/online", messageFrame => {
@@ -176,6 +238,7 @@ function subscribeStaticTopics() {
             updateSendToTargets();
         }
     });
+    logDiagnostic("SUBSCRIBED", "/topic/online");
 
     unsubscribe("globalSettings");
     subscriptions.globalSettings = stompClient.subscribe("/topic/settings/global", messageFrame => {
@@ -184,6 +247,7 @@ function subscribeStaticTopics() {
             applySendUs(payload.value);
         }
     });
+    logDiagnostic("SUBSCRIBED", "/topic/settings/global");
 }
 
 function subscribeDeviceTopics() {
@@ -195,12 +259,14 @@ function subscribeDeviceTopics() {
         const payload = JSON.parse(messageFrame.body);
         appendMessage(payload);
     });
+    logDiagnostic("SUBSCRIBED", `/topic/device/${sessionId}/messages`);
 
     unsubscribe("deviceControl");
     subscriptions.deviceControl = stompClient.subscribe(`/topic/device/${sessionId}/control`, messageFrame => {
         const payload = JSON.parse(messageFrame.body);
         handleControlPayload(payload);
     });
+    logDiagnostic("SUBSCRIBED", `/topic/device/${sessionId}/control`);
 }
 
 function subscribeUserTopics() {
@@ -213,12 +279,14 @@ function subscribeUserTopics() {
         const payload = JSON.parse(messageFrame.body);
         appendMessage(payload);
     });
+    logDiagnostic("SUBSCRIBED", `/topic/user/${currentMe}/messages`);
     subscriptions.userSettings = stompClient.subscribe(`/topic/settings/user/${currentMe}`, messageFrame => {
         const payload = JSON.parse(messageFrame.body);
         if (payload.value) {
             applySendMe(payload.value);
         }
     });
+    logDiagnostic("SUBSCRIBED", `/topic/settings/user/${currentMe}`);
 }
 
 function unsubscribe(key) {
@@ -245,22 +313,26 @@ function registerSession() {
         destination: "/app/session/register",
         body: JSON.stringify(payload)
     });
+    logDiagnostic("SESSION_REGISTER_SENT", JSON.stringify(payload));
 }
 
 function publishValue(destination, value) {
     if (!stompClient || !stompClient.connected) {
         showError("Not connected to server.");
+        logDiagnostic("PUBLISH_FAILED", `destination=${destination} value=${value}`);
         return;
     }
     stompClient.publish({
         destination,
         body: JSON.stringify({value})
     });
+    logDiagnostic("VALUE_PUBLISHED", `destination=${destination} value=${value}`);
 }
 
 function sendChatMessage() {
     if (!stompClient || !stompClient.connected) {
         showError("Cannot send message while disconnected.");
+        logDiagnostic("SEND_FAILED", "Client not connected");
         return;
     }
     const payload = {
@@ -271,6 +343,7 @@ function sendChatMessage() {
         destination: "/app/message/send",
         body: JSON.stringify(payload)
     });
+    logDiagnostic("MESSAGE_SENT", JSON.stringify(payload));
 }
 
 function handleControlPayload(payload) {
@@ -396,6 +469,7 @@ function updateSendToTargets() {
         sendTargetIndex = 0;
     }
     elements.sendToButton.textContent = sendTargets[sendTargetIndex];
+    logDiagnostic("SEND_TO_UPDATED", sendTargets.join(","));
 }
 
 function applySendMe(value) {
@@ -418,11 +492,16 @@ function applySendUs(value) {
 
 function showError(message) {
     window.alert(message || "Unknown error");
+    logDiagnostic("ERROR_ALERT", message || "Unknown error");
 }
 
 function setConnectionStatus(text, status) {
     elements.connectionStatus.textContent = text;
     elements.connectionStatus.dataset.status = status;
+    if (text !== lastStatusText) {
+        logDiagnostic("STATUS", `${text} (${status})`);
+        lastStatusText = text;
+    }
 }
 
 init();

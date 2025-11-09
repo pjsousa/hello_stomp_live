@@ -13,7 +13,7 @@ body {
 .layout {
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto auto 1fr auto;
     gap: 1rem;
     padding: 1.5rem;
     max-width: 860px;
@@ -157,10 +157,35 @@ button:hover {
     font-size: 1.1rem;
 }
 
+.diagnostics {
+    grid-column: 1 / span 1;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(31, 41, 51, 0.08);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.diagnostics-pane {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 0.75rem;
+    min-height: 140px;
+    max-height: 240px;
+    overflow-y: auto;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
 @media (max-width: 960px) {
     .layout {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
+        grid-template-rows: auto auto auto auto;
     }
 
     .app-header, .controls {
