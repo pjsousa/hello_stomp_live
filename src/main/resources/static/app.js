@@ -6,11 +6,11 @@ let animalOptions = [...DEFAULT_ANIMALS];
 let foodOptions = [...DEFAULT_FOODS];
 
 const elements = {
-    meSelect: document.getElementById("meSelect"),
+    meButton: document.getElementById("meButton"),
     sendToButton: document.getElementById("sendToButton"),
-    sendMeSelect: document.getElementById("sendMeSelect"),
-    sendHereSelect: document.getElementById("sendHereSelect"),
-    sendUsSelect: document.getElementById("sendUsSelect"),
+    sendMeButton: document.getElementById("sendMeButton"),
+    sendHereButton: document.getElementById("sendHereButton"),
+    sendUsButton: document.getElementById("sendUsButton"),
     messageButton: document.getElementById("messageButton"),
     sendButton: document.getElementById("sendButton"),
     messagesPane: document.getElementById("messagesPane"),
@@ -28,9 +28,11 @@ let onlineUsers = [];
 let messages = [];
 const seenMessageIds = new Set();
 
-let suppressSendMe = false;
-let suppressSendHere = false;
-let suppressSendUs = false;
+// Indices for cycling buttons
+let meIndex = 0;
+let sendMeIndex = 0;
+let sendHereIndex = 1;
+let sendUsIndex = 2;
 
 const subscriptions = {
     broadcast: null,
@@ -63,15 +65,12 @@ function logDiagnostic(event, detail = "") {
 
 function init() {
     logDiagnostic("INIT", `Origin=${window.location.origin}`);
-    populateSelect(elements.meSelect, animalOptions);
-    populateSelect(elements.sendMeSelect, foodOptions);
-    populateSelect(elements.sendHereSelect, foodOptions);
-    populateSelect(elements.sendUsSelect, foodOptions);
-
-    elements.meSelect.value = currentMe;
-    elements.sendMeSelect.value = foodOptions[0];
-    elements.sendHereSelect.value = foodOptions[1] ?? foodOptions[0];
-    elements.sendUsSelect.value = foodOptions[2] ?? foodOptions[0];
+    // Initialize button labels
+    currentMe = animalOptions[meIndex] ?? animalOptions[0];
+    elements.meButton.textContent = currentMe;
+    elements.sendMeButton.textContent = foodOptions[sendMeIndex] ?? foodOptions[0];
+    elements.sendHereButton.textContent = foodOptions[sendHereIndex] ?? foodOptions[0];
+    elements.sendUsButton.textContent = foodOptions[sendUsIndex] ?? foodOptions[0];
     elements.messageButton.textContent = foodOptions[0];
 
     registerListeners();
@@ -80,19 +79,14 @@ function init() {
     setConnectionStatus("Connecting…", "pending");
 }
 
-function populateSelect(selectElement, options) {
-    selectElement.innerHTML = "";
-    options.forEach(value => {
-        const option = document.createElement("option");
-        option.value = value;
-        option.textContent = value;
-        selectElement.appendChild(option);
-    });
-}
-
 function registerListeners() {
-    elements.meSelect.addEventListener("change", () => {
-        currentMe = elements.meSelect.value;
+    elements.meButton.addEventListener("click", () => {
+        if (!animalOptions.length) {
+            return;
+        }
+        meIndex = (meIndex + 1) % animalOptions.length;
+        currentMe = animalOptions[meIndex];
+        elements.meButton.textContent = currentMe;
         subscribeUserTopics();
         registerSession();
         updateSendToTargets();
@@ -107,29 +101,35 @@ function registerListeners() {
         elements.sendToButton.textContent = sendTargets[sendTargetIndex];
     });
 
-    elements.sendMeSelect.addEventListener("change", () => {
-        if (suppressSendMe) {
+    elements.sendMeButton.addEventListener("click", () => {
+        if (!foodOptions.length) {
             return;
         }
-        const value = elements.sendMeSelect.value;
+        sendMeIndex = (sendMeIndex + 1) % foodOptions.length;
+        const value = foodOptions[sendMeIndex];
+        elements.sendMeButton.textContent = value;
         logDiagnostic("SEND_ME_CHANGE", value);
         publishValue("/app/settings/send-me", value);
     });
 
-    elements.sendHereSelect.addEventListener("change", () => {
-        if (suppressSendHere) {
+    elements.sendHereButton.addEventListener("click", () => {
+        if (!foodOptions.length) {
             return;
         }
-        const value = elements.sendHereSelect.value;
+        sendHereIndex = (sendHereIndex + 1) % foodOptions.length;
+        const value = foodOptions[sendHereIndex];
+        elements.sendHereButton.textContent = value;
         logDiagnostic("SEND_HERE_CHANGE", value);
         publishValue("/app/settings/send-here", value);
     });
 
-    elements.sendUsSelect.addEventListener("change", () => {
-        if (suppressSendUs) {
+    elements.sendUsButton.addEventListener("click", () => {
+        if (!foodOptions.length) {
             return;
         }
-        const value = elements.sendUsSelect.value;
+        sendUsIndex = (sendUsIndex + 1) % foodOptions.length;
+        const value = foodOptions[sendUsIndex];
+        elements.sendUsButton.textContent = value;
         logDiagnostic("SEND_US_CHANGE", value);
         publishValue("/app/settings/send-us", value);
     });
@@ -310,8 +310,8 @@ function registerSession() {
     }
     const payload = {
         me: currentMe,
-        sendMe: elements.sendMeSelect.value,
-        sendHere: elements.sendHereSelect.value
+        sendMe: elements.sendMeButton.textContent,
+        sendHere: elements.sendHereButton.textContent
     };
     stompClient.publish({
         destination: "/app/session/register",
@@ -373,20 +373,43 @@ function handleControlPayload(payload) {
 function applySnapshot(snapshot) {
     if (Array.isArray(snapshot.animalOptions) && snapshot.animalOptions.length) {
         animalOptions = snapshot.animalOptions;
-        populateSelect(elements.meSelect, animalOptions);
+        // Preserve currentMe if possible, else fallback to first
+        const idx = animalOptions.indexOf(currentMe);
+        meIndex = idx >= 0 ? idx : 0;
+        currentMe = animalOptions[meIndex];
+        elements.meButton.textContent = currentMe;
+        subscribeUserTopics();
     }
     if (Array.isArray(snapshot.foodOptions) && snapshot.foodOptions.length) {
         foodOptions = snapshot.foodOptions;
-        populateSelect(elements.sendMeSelect, foodOptions);
-        populateSelect(elements.sendHereSelect, foodOptions);
-        populateSelect(elements.sendUsSelect, foodOptions);
+        // Re-sync indices based on current button labels where possible
+        const currentSendMe = elements.sendMeButton.textContent;
+        const currentSendHere = elements.sendHereButton.textContent;
+        const currentSendUs = elements.sendUsButton.textContent;
+        sendMeIndex = Math.max(0, foodOptions.indexOf(currentSendMe));
+        sendHereIndex = Math.max(0, foodOptions.indexOf(currentSendHere));
+        sendUsIndex = Math.max(0, foodOptions.indexOf(currentSendUs));
+        if (sendHereIndex === 0 && currentSendHere !== foodOptions[0]) {
+            // If not found, prefer second option when available
+            sendHereIndex = foodOptions[1] ? 1 : 0;
+        }
+        if (sendUsIndex === 0 && currentSendUs !== foodOptions[0]) {
+            // If not found, prefer third option when available
+            sendUsIndex = foodOptions[2] ? 2 : 0;
+        }
+        elements.sendMeButton.textContent = foodOptions[sendMeIndex] ?? foodOptions[0];
+        elements.sendHereButton.textContent = foodOptions[sendHereIndex] ?? foodOptions[0];
+        elements.sendUsButton.textContent = foodOptions[sendUsIndex] ?? foodOptions[0];
         messageIndex = 0;
         elements.messageButton.textContent = foodOptions[messageIndex];
     }
 
     if (snapshot.me) {
         currentMe = snapshot.me;
-        elements.meSelect.value = currentMe;
+        const idx = animalOptions.indexOf(currentMe);
+        meIndex = idx >= 0 ? idx : 0;
+        currentMe = animalOptions[meIndex];
+        elements.meButton.textContent = currentMe;
         subscribeUserTopics();
     }
     if (snapshot.sendMe) {
@@ -477,21 +500,21 @@ function updateSendToTargets() {
 }
 
 function applySendMe(value) {
-    suppressSendMe = true;
-    elements.sendMeSelect.value = value;
-    suppressSendMe = false;
+    const idx = foodOptions.indexOf(value);
+    sendMeIndex = idx >= 0 ? idx : 0;
+    elements.sendMeButton.textContent = foodOptions[sendMeIndex];
 }
 
 function applySendHere(value) {
-    suppressSendHere = true;
-    elements.sendHereSelect.value = value;
-    suppressSendHere = false;
+    const idx = foodOptions.indexOf(value);
+    sendHereIndex = idx >= 0 ? idx : 0;
+    elements.sendHereButton.textContent = foodOptions[sendHereIndex];
 }
 
 function applySendUs(value) {
-    suppressSendUs = true;
-    elements.sendUsSelect.value = value;
-    suppressSendUs = false;
+    const idx = foodOptions.indexOf(value);
+    sendUsIndex = idx >= 0 ? idx : 0;
+    elements.sendUsButton.textContent = foodOptions[sendUsIndex];
 }
 
 function showError(message) {
