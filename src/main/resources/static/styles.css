@@ -8,16 +8,19 @@ body {
     font-family: "Segoe UI", sans-serif;
     background: #f5f5f7;
     color: #1f2933;
+    font-size: 20px;
 }
 
 .layout {
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
     gap: 1rem;
     padding: 1.5rem;
     max-width: 860px;
     margin: 0 auto;
+    height: 100vh;
+    align-content: start;
 }
 
 .app-header {
@@ -29,6 +32,12 @@ body {
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 18px rgba(31, 41, 51, 0.08);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
 }
 
 .app-header h1 {
@@ -69,10 +78,10 @@ body {
 }
 
 select, button {
-    padding: 0.6rem 0.8rem;
+    padding: 0.9rem 1.2rem;
     border: 1px solid #d0d7e2;
-    border-radius: 10px;
-    font-size: 1rem;
+    border-radius: 0;
+    font-size: 1.1rem;
     background: #f8fafc;
     color: inherit;
     transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s;
@@ -107,6 +116,12 @@ button:hover {
     gap: 0.5rem;
 }
 
+#meButton,
+#messageButton {
+    min-width: 9rem;
+    text-align: center;
+}
+
 .messages {
     grid-column: 1 / span 1;
     background: white;
@@ -115,6 +130,9 @@ button:hover {
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .messages h2,
@@ -124,7 +142,9 @@ button:hover {
 }
 
 .messages-pane {
-    flex: 1;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -138,6 +158,10 @@ button:hover {
     border-radius: 10px;
     border-left: 4px solid #3b82f6;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
 }
 
 .message.system {
@@ -145,16 +169,17 @@ button:hover {
     background: #f5f3ff;
 }
 
-.message .meta {
-    display: flex;
-    gap: 0.6rem;
-    font-size: 0.85rem;
-    color: #475569;
-    margin-bottom: 0.3rem;
+.message .left {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.message .content {
-    font-size: 1.1rem;
+.message .right {
+    flex: 0 0 auto;
+    color: #475569;
+    font-size: 0.95rem;
+    margin-left: 1rem;
 }
 
 .diagnostics {
@@ -182,10 +207,22 @@ button:hover {
     word-break: break-word;
 }
 
+.composer {
+    grid-column: 1 / span 1;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 -4px 18px rgba(31, 41, 51, 0.08);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
 @media (max-width: 960px) {
     .layout {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto auto;
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
     }
 
     .app-header, .controls {

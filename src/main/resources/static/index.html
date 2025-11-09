@@ -10,46 +10,41 @@
 <body>
 <main class="layout">
     <header class="app-header">
-        <h1>Emoji Real-Time Chat</h1>
-        <div id="connectionStatus" class="status">Connecting...</div>
+            <div class="header-left">
+                <label for="meButton">ME</label>
+                <button id="meButton" class="cycle-button">🐶</button>
+            </div>
+            <div id="connectionStatus" class="status">Connecting...</div>
     </header>
 
     <section class="controls">
-        <div class="control-group">
-            <label for="meSelect">ME</label>
-            <select id="meSelect"></select>
-        </div>
         <div class="control-group">
             <label for="sendToButton">SEND TO</label>
             <button id="sendToButton" class="cycle-button">EVERYONE</button>
         </div>
         <div class="control-group">
-            <label for="sendMeSelect">SEND ME</label>
-            <select id="sendMeSelect"></select>
+            <label for="sendMeButton">SEND ME</label>
+            <button id="sendMeButton" class="cycle-button">🍎</button>
         </div>
         <div class="control-group">
-            <label for="sendHereSelect">SEND HERE</label>
-            <select id="sendHereSelect"></select>
+            <label for="sendHereButton">SEND HERE</label>
+            <button id="sendHereButton" class="cycle-button">🍌</button>
         </div>
         <div class="control-group">
-            <label for="sendUsSelect">SEND US</label>
-            <select id="sendUsSelect"></select>
-        </div>
-        <div class="control-group inline-actions">
-            <button id="messageButton" class="cycle-button">🍎</button>
-            <button id="sendButton" class="primary">SEND</button>
+            <label for="sendUsButton">SEND US</label>
+            <button id="sendUsButton" class="cycle-button">🍇</button>
         </div>
     </section>
 
     <section class="messages">
-        <h2>Messages</h2>
         <div id="messagesPane" class="messages-pane"></div>
     </section>
 
-    <section class="diagnostics">
-        <h2>Diagnostics</h2>
-        <pre id="diagnosticsPane" class="diagnostics-pane" aria-live="polite"></pre>
-    </section>
+    <footer class="composer">
+        <button id="messageButton" class="cycle-button">🍎</button>
+        <button id="sendButton" class="primary">SEND</button>
+    </footer>
+
 </main>
 
 <script type="module" src="/app.js"></script>
