@@ -14,7 +14,6 @@ const elements = {
     messageButton: document.getElementById("messageButton"),
     sendButton: document.getElementById("sendButton"),
     messagesPane: document.getElementById("messagesPane"),
-    onlineList: document.getElementById("onlineList"),
     errorBox: document.getElementById("errorBox"),
     connectionStatus: document.getElementById("connectionStatus")
 };
@@ -175,7 +174,6 @@ function subscribeStaticTopics() {
         const payload = JSON.parse(messageFrame.body);
         if (Array.isArray(payload.users)) {
             onlineUsers = payload.users;
-            renderOnlineUsers();
             updateSendToTargets();
         }
     });
@@ -327,7 +325,6 @@ function applySnapshot(snapshot) {
     }
     if (Array.isArray(snapshot.onlineUsers)) {
         onlineUsers = snapshot.onlineUsers;
-        renderOnlineUsers();
         updateSendToTargets();
     }
     if (Array.isArray(snapshot.recentMessages)) {
@@ -390,23 +387,6 @@ function formattedTime(instantString) {
         return instantString;
     }
     return date.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit", second: "2-digit"});
-}
-
-function renderOnlineUsers() {
-    elements.onlineList.innerHTML = "";
-    if (!onlineUsers.length) {
-        const span = document.createElement("div");
-        span.classList.add("tag");
-        span.textContent = "No users";
-        elements.onlineList.appendChild(span);
-        return;
-    }
-    onlineUsers.forEach(user => {
-        const span = document.createElement("div");
-        span.classList.add("tag");
-        span.textContent = user;
-        elements.onlineList.appendChild(span);
-    });
 }
 
 function updateSendToTargets() {
