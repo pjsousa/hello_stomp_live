@@ -25,12 +25,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
                 .addInterceptors(loggingHandshakeInterceptor)
-                .setAllowedOrigins(
-                        "https://hellostomplive-production.up.railway.app",
-                        "https://localhost",
-                        "http://localhost",
-                        "http://localhost:8080"
-                );
+                .setAllowedOriginPatterns("*");
     }
 
     @Override
