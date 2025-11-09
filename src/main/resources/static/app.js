@@ -75,7 +75,7 @@ function init() {
     elements.messageButton.textContent = foodOptions[0];
 
     registerListeners();
-    probeEndpoint().finally(connect);
+    connect();
     updateSendToTargets();
     setConnectionStatus("Connecting…", "pending");
 }
@@ -144,22 +144,12 @@ function registerListeners() {
     });
 }
 
-async function probeEndpoint() {
-    logDiagnostic("PROBE", "Checking SockJS info endpoint /ws/info");
-    try {
-        const response = await fetch("/ws/info", { method: "GET", headers: { "Cache-Control": "no-cache" } });
-        logDiagnostic("PROBE_RESULT", `status=${response.status}`);
-    } catch (error) {
-        logDiagnostic("PROBE_ERROR", error instanceof Error ? error.message : String(error));
-    }
-}
-
 function connect() {
     stompClient = new window.Stomp.Client({
-        webSocketFactory: () => new SockJS("/ws"),
+        brokerURL: `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`,
         reconnectDelay: 5000,
-        heartbeatIncoming: 10000,
-        heartbeatOutgoing: 10000,
+        heartbeatIncoming: 0,
+        heartbeatOutgoing: 0,
         debug: message => {
             if (message && !message.includes("PING")) {
                 logDiagnostic("STOMP_DEBUG", message);
@@ -181,6 +171,10 @@ function connect() {
         const message = frame.headers["message"] ?? "unknown";
         logDiagnostic("STOMP_ERROR", message);
         showError(`Broker error: ${message}`);
+    };
+
+    stompClient.onDisconnect = frame => {
+        logDiagnostic("STOMP_DISCONNECTED", JSON.stringify(frame));
     };
 
     stompClient.onWebSocketClose = () => {
@@ -206,7 +200,11 @@ function connect() {
         logDiagnostic("UNHANDLED_RECEIPT", receiptId);
     };
 
-    stompClient.activate();
+    try {
+        stompClient.activate();
+    } catch (error) {
+        logDiagnostic("STOMP_ACTIVATE_ERROR", error instanceof Error ? error.message : String(error));
+    }
 }
 
 function resetSubscriptions() {
