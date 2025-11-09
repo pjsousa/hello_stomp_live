@@ -457,20 +457,18 @@ function renderMessages() {
             wrapper.classList.add("system");
         }
 
-        const meta = document.createElement("div");
-        meta.classList.add("meta");
-        const timestamp = formattedTime(message.timestamp);
+        const left = document.createElement("div");
+        left.classList.add("left");
         const sender = message.sender ?? "unknown";
-        const target = message.audience === "EVERYONE" ? "🌐 Everyone" :
-            message.audience === "DEVICE" ? "📱 This Device" : `🎯 ${message.target}`;
-        meta.textContent = `${timestamp} • ${sender} • ${target}`;
+        const content = message.content ?? "";
+        left.textContent = `${sender}: ${content}`;
 
-        const content = document.createElement("div");
-        content.classList.add("content");
-        content.textContent = message.content ?? "";
+        const right = document.createElement("div");
+        right.classList.add("right");
+        right.textContent = formattedTime(message.timestamp);
 
-        wrapper.appendChild(meta);
-        wrapper.appendChild(content);
+        wrapper.appendChild(left);
+        wrapper.appendChild(right);
         elements.messagesPane.appendChild(wrapper);
     });
     elements.messagesPane.scrollTop = elements.messagesPane.scrollHeight;

@@ -10,15 +10,14 @@
 <body>
 <main class="layout">
     <header class="app-header">
-        <h1>Emoji Real-Time Chat</h1>
-        <div id="connectionStatus" class="status">Connecting...</div>
+            <div class="header-left">
+                <label for="meButton">ME</label>
+                <button id="meButton" class="cycle-button">🐶</button>
+            </div>
+            <div id="connectionStatus" class="status">Connecting...</div>
     </header>
 
     <section class="controls">
-        <div class="control-group">
-            <label for="meButton">ME</label>
-            <button id="meButton" class="cycle-button">🐶</button>
-        </div>
         <div class="control-group">
             <label for="sendToButton">SEND TO</label>
             <button id="sendToButton" class="cycle-button">EVERYONE</button>
@@ -35,16 +34,16 @@
             <label for="sendUsButton">SEND US</label>
             <button id="sendUsButton" class="cycle-button">🍇</button>
         </div>
-        <div class="control-group inline-actions">
-            <button id="messageButton" class="cycle-button">🍎</button>
-            <button id="sendButton" class="primary">SEND</button>
-        </div>
     </section>
 
     <section class="messages">
-        <h2>Messages</h2>
         <div id="messagesPane" class="messages-pane"></div>
     </section>
+
+    <footer class="composer">
+        <button id="messageButton" class="cycle-button">🍎</button>
+        <button id="sendButton" class="primary">SEND</button>
+    </footer>
 
 </main>
 
