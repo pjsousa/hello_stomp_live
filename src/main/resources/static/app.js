@@ -14,7 +14,6 @@ const elements = {
     messageButton: document.getElementById("messageButton"),
     sendButton: document.getElementById("sendButton"),
     messagesPane: document.getElementById("messagesPane"),
-    errorBox: document.getElementById("errorBox"),
     connectionStatus: document.getElementById("connectionStatus")
 };
 
@@ -295,7 +294,6 @@ function handleControlPayload(payload) {
 }
 
 function applySnapshot(snapshot) {
-    clearError();
     if (Array.isArray(snapshot.animalOptions) && snapshot.animalOptions.length) {
         animalOptions = snapshot.animalOptions;
         populateSelect(elements.meSelect, animalOptions);
@@ -419,11 +417,7 @@ function applySendUs(value) {
 }
 
 function showError(message) {
-    elements.errorBox.textContent = message || "Unknown error";
-}
-
-function clearError() {
-    elements.errorBox.textContent = "None";
+    window.alert(message || "Unknown error");
 }
 
 function setConnectionStatus(text, status) {
